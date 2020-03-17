@@ -30,6 +30,7 @@ export class GoogleReCaptchaProvider extends React.Component<
   googleRecaptchaSrc = 'https://www.google.com/recaptcha/api.js';
   resolver: any = undefined;
   rejecter: any = undefined;
+  loadTimeout: any = undefined;
 
   grecaptcha: Promise<any> = new Promise((resolve, reject) => {
     this.resolver = resolve;
@@ -65,6 +66,11 @@ export class GoogleReCaptchaProvider extends React.Component<
   };
 
   handleOnLoad = () => {
+    if ((!window || !(window as any).grecaptcha) && (window as any).grcScriptPlaced) {
+      this.loadTimeout = setTimeout(() => {
+        this.handleOnLoad();
+      }, 50);
+    }
     if (!window || !(window as any).grecaptcha) {
       console.warn(GoogleRecaptchaError.SCRIPT_NOT_AVAILABLE);
 
@@ -97,6 +103,7 @@ export class GoogleReCaptchaProvider extends React.Component<
     js.onload = this.handleOnLoad;
 
     head.appendChild(js);
+    (window as any).grcScriptPlaced = true;
   };
 
   render() {
